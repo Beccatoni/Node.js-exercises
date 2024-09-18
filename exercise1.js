@@ -12,6 +12,21 @@ const server = http.createServer((req, res)=> {
             res.writeHead(200, {'Content-Type': 'text/plain'});
             res.end(data);
         })
+    }else if (req.method === 'POST'){
+        let body = ''
+        req.on('data', chunck => {
+            body += chunck
+        })
+        req.on('end', ()=> {
+            fs.writeFile('output.txt', body, 'utf8', (err)=> {
+                if(err)throw err;
+                res.writeHead(200, {'Content-Type':'text/plain'})
+                res.end('Content added successfully')
+            })
+
+        })
+
+        
     }
 })
 
