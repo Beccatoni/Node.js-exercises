@@ -20,7 +20,7 @@ const writeFileData = async (req, res) => {
   try {
     const { name, age } = req.body;
 
-    console.log()
+    console.log();
     const data = await fs.readFile("data.json", "utf-8");
 
     const currentData = JSON.parse(data);
@@ -32,14 +32,51 @@ const writeFileData = async (req, res) => {
       JSON.stringify(currentData, null, 2),
       "utf-8"
     );
-    res.status(200).json({ message: "Data added successfully" });
+    res.status(201).json({ message: "Data added successfully" });
   } catch (error) {
-    res.status(404).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
+const updateData = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { name, age } = req.body;
+    const data = await fs.readFile("data.json", "utf-8");
+    const currentData = JSON.parse(data);
+    const userWithId = currentData.findIndex((user) => user.id === id);
+
+    if (userWithId === -1) {
+      throw new Error(`User with id: "${id}" does not exist`);
+    }
+    currentData[userWithId] = { ...currentData[userWithId], name, age };
+    await fs.writeFile('data.json', JSON.stringify(currentData, null, 2), 'utf-8')
+    res
+      .status(200)
+      .json({ message: `User with id: "${id}" updated successfully` });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+const deleteUser = async(req, res) => {
+  try {
+    const id = req.params.id;
+    const data = await fs.readFile('data.json', 'utf-8');
+    const currentData = JSON.parse(data);
+    const newData = currentData.filter(user => user.id !== id);
+    await fs.writeFile('data.json', JSON.stringify(newData, null, 2), 'utf-8');
+
+    res.status(200).json({ message: `User with id: "${id}" deleted successfully` });
+  } catch (error) {
+    
+  }
+}
 app.get("/", readFileData);
 app.post("/add", writeFileData);
+app.put("/update/:id", updateData);
+app.delete("/deleteOne/:id", deleteUser)
 
 app.listen(3004, () => {
   console.log("Server is listening on 3004");
